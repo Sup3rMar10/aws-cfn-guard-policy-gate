@@ -4,7 +4,7 @@
 
 **Policy-as-code for CloudFormation, with the policies themselves tested.** Twelve [cfn-guard](https://github.com/aws-cloudformation/cloudformation-guard) rules (S3, security groups, IAM, RDS, EBS, KMS, logs, tags) plus the part most policy repos skip: proof that each rule actually *catches* what it claims, and does not flag what it should leave alone.
 
-> **What is verified, and what is not.** Locally with cfn-guard 3.2.1: **28 native unit-test cases pass**, and a matrix of **every rule against 27 fixture templates** (25 deliberately non-compliant, 2 compliant) returns exactly the expected failures. I weakened two rules on purpose and both test layers failed. `cfn-lint` passes on the compliant templates. **No AWS account is involved**: this checks template *text*, so it says nothing about what is actually deployed.
+> **What is verified, and what is not.** Locally with cfn-guard 3.2.1: **28 native unit-test cases pass**, and a matrix of **every rule against 27 fixture templates** (25 deliberately non-compliant, 2 compliant) returns exactly the expected failures. I weakened two rules on purpose and both test layers failed. `cfn-lint` passes on the compliant templates, and GitHub Actions on Linux passed the unit tests and the full matrix with cfn-guard 3.2.1 pinned (2026-10-17). **No AWS account is involved**: this checks template *text*, so it says nothing about what is actually deployed.
 
 ## The rules (`rules/`)
 
