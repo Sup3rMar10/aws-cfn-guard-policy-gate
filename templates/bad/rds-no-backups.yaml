@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NON-COMPLIANT on purpose: rds-no-backups'
+Resources:
+  D:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: postgres
+      DBInstanceClass: db.t4g.micro
+      AllocatedStorage: '20'
+      MasterUsername: u
+      ManageMasterUserPassword: true
+      StorageEncrypted: true
+      PubliclyAccessible: false
+      BackupRetentionPeriod: 1
+      Tags:
+      - Key: Owner
+        Value: platform-team
+      - Key: Environment
+        Value: prod

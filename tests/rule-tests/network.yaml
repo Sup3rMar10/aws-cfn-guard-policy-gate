@@ -1,0 +1,73 @@
+---
+- name: HTTPS from anywhere is allowed
+  input:
+    Resources:
+      S:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+          GroupDescription: web
+          SecurityGroupIngress:
+            - {IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0}
+  expectations:
+    rules:
+      sg_inline_no_world_open_ssh: PASS
+      sg_inline_no_world_open_rdp: PASS
+- name: SSH from anywhere fails the ssh rule only
+  input:
+    Resources:
+      S:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+          GroupDescription: x
+          SecurityGroupIngress:
+            - {IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: 0.0.0.0/0}
+  expectations:
+    rules:
+      sg_inline_no_world_open_ssh: FAIL
+      sg_inline_no_world_open_rdp: PASS
+- name: SSH hidden inside a port range still fails
+  input:
+    Resources:
+      S:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+          GroupDescription: x
+          SecurityGroupIngress:
+            - {IpProtocol: tcp, FromPort: 20, ToPort: 25, CidrIp: 0.0.0.0/0}
+  expectations:
+    rules:
+      sg_inline_no_world_open_ssh: FAIL
+- name: all traffic from anywhere fails both
+  input:
+    Resources:
+      S:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+          GroupDescription: x
+          SecurityGroupIngress:
+            - {IpProtocol: "-1", CidrIp: 0.0.0.0/0}
+  expectations:
+    rules:
+      sg_inline_no_world_open_ssh: FAIL
+      sg_inline_no_world_open_rdp: FAIL
+- name: SSH from a private range is fine
+  input:
+    Resources:
+      S:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+          GroupDescription: x
+          SecurityGroupIngress:
+            - {IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: 10.0.0.0/8}
+  expectations:
+    rules:
+      sg_inline_no_world_open_ssh: SKIP  # nothing is open to the world, so there is nothing to evaluate
+- name: a standalone rule opening SSH to the world fails
+  input:
+    Resources:
+      R:
+        Type: AWS::EC2::SecurityGroupIngress
+        Properties: {GroupId: sg-0123456789abcdef0, IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: 0.0.0.0/0}
+  expectations:
+    rules:
+      sg_standalone_no_world_open_admin: FAIL

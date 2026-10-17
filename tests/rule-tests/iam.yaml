@@ -1,0 +1,76 @@
+---
+- name: Allow star on star fails as strings
+  input:
+    Resources:
+      A:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement: [{Effect: Allow, Action: "*", Resource: "*"}]
+  expectations:
+    rules:
+      iam_policy_no_allow_star_on_star: FAIL
+- name: and as lists
+  input:
+    Resources:
+      A:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement: [{Effect: Allow, Action: ["*"], Resource: ["*"]}]
+  expectations:
+    rules:
+      iam_policy_no_allow_star_on_star: FAIL
+- name: star on a specific resource, and specific actions on star, are allowed
+  input:
+    Resources:
+      A:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - {Effect: Allow, Action: "s3:*", Resource: "arn:aws:s3:::b/*"}
+              - {Effect: Allow, Action: ["logs:Get*"], Resource: "*"}
+  expectations:
+    rules:
+      iam_policy_no_allow_star_on_star: PASS
+- name: a Deny of everything is not an Allow
+  input:
+    Resources:
+      A:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement: [{Effect: Deny, Action: "*", Resource: "*"}]
+  expectations:
+    rules:
+      iam_policy_no_allow_star_on_star: SKIP  # no Allow statement to evaluate
+- name: an inline admin policy on a role fails
+  input:
+    Resources:
+      R:
+        Type: AWS::IAM::Role
+        Properties:
+          AssumeRolePolicyDocument: {Version: "2012-10-17", Statement: []}
+          Policies:
+            - PolicyName: admin
+              PolicyDocument:
+                Version: "2012-10-17"
+                Statement: [{Effect: Allow, Action: "*", Resource: "*"}]
+  expectations:
+    rules:
+      iam_role_inline_policy_no_allow_star_on_star: FAIL
+- name: a role with no inline policies is fine
+  input:
+    Resources:
+      R:
+        Type: AWS::IAM::Role
+        Properties:
+          AssumeRolePolicyDocument: {Version: "2012-10-17", Statement: []}
+  expectations:
+    rules:
+      iam_role_inline_policy_no_allow_star_on_star: SKIP

@@ -1,0 +1,67 @@
+#
+# Security groups: nothing administrative, and nothing "everything", is open to the whole internet.
+# (Per-resource blocks; see the note at the top of s3.guard.)
+#
+let sgs           = Resources.*[ Type == 'AWS::EC2::SecurityGroup' ]
+let standalone_in = Resources.*[ Type == 'AWS::EC2::SecurityGroupIngress' ]
+
+# An ingress rule open to the world must not cover 22 (SSH) or 3389 (RDP). A rule with no port range at all
+# (IpProtocol -1, "all traffic") has no FromPort, so these checks fail on it, as they should.
+rule sg_inline_no_world_open_ssh when %sgs !empty {
+    %sgs {
+        when Properties.SecurityGroupIngress exists {
+            Properties.SecurityGroupIngress[ CidrIp == '0.0.0.0/0' ] {
+                FromPort > 22 or ToPort < 22
+                <<
+                    Violation: a security group must not allow SSH (22) from the whole internet, directly or inside a port range.
+                >>
+            }
+            Properties.SecurityGroupIngress[ CidrIpv6 == '::/0' ] {
+                FromPort > 22 or ToPort < 22
+                <<
+                    Violation: a security group must not allow SSH (22) from the whole internet over IPv6.
+                >>
+            }
+        }
+    }
+}
+
+rule sg_inline_no_world_open_rdp when %sgs !empty {
+    %sgs {
+        when Properties.SecurityGroupIngress exists {
+            Properties.SecurityGroupIngress[ CidrIp == '0.0.0.0/0' ] {
+                FromPort > 3389 or ToPort < 3389
+                <<
+                    Violation: a security group must not allow RDP (3389) from the whole internet, directly or inside a port range.
+                >>
+            }
+            Properties.SecurityGroupIngress[ CidrIpv6 == '::/0' ] {
+                FromPort > 3389 or ToPort < 3389
+                <<
+                    Violation: a security group must not allow RDP (3389) from the whole internet over IPv6.
+                >>
+            }
+        }
+    }
+}
+
+rule sg_standalone_no_world_open_admin when %standalone_in !empty {
+    %standalone_in {
+        Properties {
+            when CidrIp == '0.0.0.0/0' {
+                FromPort > 22 or ToPort < 22
+                FromPort > 3389 or ToPort < 3389
+                <<
+                    Violation: a standalone ingress rule must not open SSH or RDP to the whole internet.
+                >>
+            }
+            when CidrIpv6 == '::/0' {
+                FromPort > 22 or ToPort < 22
+                FromPort > 3389 or ToPort < 3389
+                <<
+                    Violation: a standalone ingress rule must not open SSH or RDP to the whole internet over IPv6.
+                >>
+            }
+        }
+    }
+}

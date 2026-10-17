@@ -1,0 +1,22 @@
+#
+# Ownership: anything that stores data says who owns it and which environment it is in.
+#
+let owned = Resources.*[ Type in ['AWS::S3::Bucket', 'AWS::RDS::DBInstance', 'AWS::DynamoDB::Table', 'AWS::EC2::Volume'] ]
+
+rule resources_have_owner_tag when %owned !empty {
+    %owned {
+        some Properties.Tags[*].Key == 'Owner'
+        <<
+            Violation: data-holding resources need an 'Owner' tag.
+        >>
+    }
+}
+
+rule resources_have_environment_tag when %owned !empty {
+    %owned {
+        some Properties.Tags[*].Key == 'Environment'
+        <<
+            Violation: data-holding resources need an 'Environment' tag.
+        >>
+    }
+}

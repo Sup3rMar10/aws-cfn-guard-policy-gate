@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NON-COMPLIANT on purpose: kms-no-rotation'
+Resources:
+  K:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement: []

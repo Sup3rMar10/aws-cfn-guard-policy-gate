@@ -1,0 +1,63 @@
+---
+- name: a public, unencrypted, unbacked-up database fails three rules
+  input:
+    Resources:
+      D:
+        Type: AWS::RDS::DBInstance
+        Properties: {StorageEncrypted: false, PubliclyAccessible: true, BackupRetentionPeriod: 1}
+  expectations:
+    rules:
+      rds_encrypted: FAIL
+      rds_not_publicly_accessible: FAIL
+      rds_has_backups: FAIL
+- name: a compliant database passes
+  input:
+    Resources:
+      D:
+        Type: AWS::RDS::DBInstance
+        Properties: {StorageEncrypted: true, PubliclyAccessible: false, BackupRetentionPeriod: 7}
+  expectations:
+    rules:
+      rds_encrypted: PASS
+      rds_not_publicly_accessible: PASS
+      rds_has_backups: PASS
+- name: PubliclyAccessible left out is not public
+  input:
+    Resources:
+      D:
+        Type: AWS::RDS::DBInstance
+        Properties: {StorageEncrypted: true, BackupRetentionPeriod: 7}
+  expectations:
+    rules:
+      rds_not_publicly_accessible: PASS
+- name: seven days is the minimum, six is not enough
+  input:
+    Resources:
+      D:
+        Type: AWS::RDS::DBInstance
+        Properties: {BackupRetentionPeriod: 6}
+  expectations:
+    rules:
+      rds_has_backups: FAIL
+- name: unencrypted volume, unrotated key, log group without retention
+  input:
+    Resources:
+      V: {Type: AWS::EC2::Volume, Properties: {Encrypted: false, Size: 1, AvailabilityZone: us-east-1a}}
+      K: {Type: AWS::KMS::Key, Properties: {EnableKeyRotation: false}}
+      L: {Type: AWS::Logs::LogGroup, Properties: {}}
+  expectations:
+    rules:
+      ebs_volume_encrypted: FAIL
+      kms_key_rotates: FAIL
+      log_group_has_retention: FAIL
+- name: the compliant versions pass
+  input:
+    Resources:
+      V: {Type: AWS::EC2::Volume, Properties: {Encrypted: true, Size: 1, AvailabilityZone: us-east-1a}}
+      K: {Type: AWS::KMS::Key, Properties: {EnableKeyRotation: true}}
+      L: {Type: AWS::Logs::LogGroup, Properties: {RetentionInDays: 30}}
+  expectations:
+    rules:
+      ebs_volume_encrypted: PASS
+      kms_key_rotates: PASS
+      log_group_has_retention: PASS

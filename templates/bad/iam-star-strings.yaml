@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NON-COMPLIANT on purpose: iam-star-strings'
+Resources:
+  P:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: p
+      Roles:
+      - r
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: '*'
+          Resource: '*'

@@ -1,0 +1,42 @@
+---
+- name: Owner and Environment present
+  input:
+    Resources:
+      B:
+        Type: AWS::S3::Bucket
+        Properties:
+          Tags: [{Key: Owner, Value: a}, {Key: Environment, Value: prod}]
+  expectations:
+    rules:
+      resources_have_owner_tag: PASS
+      resources_have_environment_tag: PASS
+- name: no tags at all fails both
+  input:
+    Resources:
+      B: {Type: AWS::S3::Bucket, Properties: {}}
+  expectations:
+    rules:
+      resources_have_owner_tag: FAIL
+      resources_have_environment_tag: FAIL
+- name: only Owner fails the environment rule
+  input:
+    Resources:
+      B:
+        Type: AWS::DynamoDB::Table
+        Properties:
+          Tags: [{Key: Owner, Value: a}]
+  expectations:
+    rules:
+      resources_have_owner_tag: PASS
+      resources_have_environment_tag: FAIL
+- name: one tagged resource does not excuse an untagged one
+  input:
+    Resources:
+      Tagged:
+        Type: AWS::S3::Bucket
+        Properties:
+          Tags: [{Key: Owner, Value: a}, {Key: Environment, Value: prod}]
+      Untagged: {Type: AWS::S3::Bucket, Properties: {}}
+  expectations:
+    rules:
+      resources_have_owner_tag: FAIL

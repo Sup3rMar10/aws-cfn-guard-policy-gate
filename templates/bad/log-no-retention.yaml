@@ -1,0 +1,7 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NON-COMPLIANT on purpose: log-no-retention'
+Resources:
+  L:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /app

@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Compliant edge cases that must NOT be flagged (guards against over-flagging)
+Resources:
+  SgWorld443:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: x
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIpv6: ::/0
+      - IpProtocol: tcp
+        FromPort: 8000
+        ToPort: 9000
+        CidrIp: 0.0.0.0/0
+  SgOffice:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: x
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: tcp
+        FromPort: 3389
+        ToPort: 3389
+        CidrIp: 192.0.2.0/24
+  ScopedStar:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: s3:*
+          Resource: arn:aws:s3:::my-bucket/*
+  DenyEverything:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Action: '*'
+          Resource: '*'
+  ReadAllLogs:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:Get*
+          - logs:Describe*
+          Resource: '*'
+  Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: python3.13
+      Role: arn:aws:iam::123456789012:role/x
+      Code:
+        ZipFile: 'def handler(e, c): return 1'

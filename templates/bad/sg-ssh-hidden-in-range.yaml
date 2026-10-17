@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NON-COMPLIANT on purpose: sg-ssh-hidden-in-range'
+Resources:
+  S:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: x
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 20
+        ToPort: 25
+        CidrIp: 0.0.0.0/0

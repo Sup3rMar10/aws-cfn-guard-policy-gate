@@ -1,0 +1,74 @@
+---
+- name: an encrypted, private, versioned bucket passes everything
+  input:
+    Resources:
+      B:
+        Type: AWS::S3::Bucket
+        Properties:
+          BucketEncryption:
+            ServerSideEncryptionConfiguration:
+              - ServerSideEncryptionByDefault: {SSEAlgorithm: aws:kms}
+          PublicAccessBlockConfiguration: {BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true}
+          VersioningConfiguration: {Status: Enabled}
+  expectations:
+    rules:
+      s3_bucket_encrypted: PASS
+      s3_bucket_blocks_public_access: PASS
+      s3_bucket_versioned: PASS
+- name: a bucket with no properties fails all three
+  input:
+    Resources:
+      B:
+        Type: AWS::S3::Bucket
+        Properties: {}
+  expectations:
+    rules:
+      s3_bucket_encrypted: FAIL
+      s3_bucket_blocks_public_access: FAIL
+      s3_bucket_versioned: FAIL
+- name: one good bucket does not hide a bad one
+  input:
+    Resources:
+      Good:
+        Type: AWS::S3::Bucket
+        Properties:
+          BucketEncryption:
+            ServerSideEncryptionConfiguration:
+              - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      Bad:
+        Type: AWS::S3::Bucket
+        Properties: {}
+  expectations:
+    rules:
+      s3_bucket_encrypted: FAIL
+- name: three of four public-access settings is not enough
+  input:
+    Resources:
+      B:
+        Type: AWS::S3::Bucket
+        Properties:
+          PublicAccessBlockConfiguration: {BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: false}
+  expectations:
+    rules:
+      s3_bucket_blocks_public_access: FAIL
+- name: suspended versioning is not enabled versioning
+  input:
+    Resources:
+      B:
+        Type: AWS::S3::Bucket
+        Properties:
+          VersioningConfiguration: {Status: Suspended}
+  expectations:
+    rules:
+      s3_bucket_versioned: FAIL
+- name: a template with no buckets is not affected
+  input:
+    Resources:
+      Q:
+        Type: AWS::SQS::Queue
+        Properties: {}
+  expectations:
+    rules:
+      s3_bucket_encrypted: SKIP
+      s3_bucket_blocks_public_access: SKIP
+      s3_bucket_versioned: SKIP

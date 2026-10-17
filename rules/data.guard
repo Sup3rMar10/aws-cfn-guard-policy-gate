@@ -1,0 +1,65 @@
+#
+# Databases, volumes and keys: encrypted, recoverable, and not exposed. Each rule checks every resource on its
+# own (see the note at the top of s3.guard).
+#
+let dbs     = Resources.*[ Type == 'AWS::RDS::DBInstance' ]
+let volumes = Resources.*[ Type == 'AWS::EC2::Volume' ]
+let keys    = Resources.*[ Type == 'AWS::KMS::Key' ]
+let logs    = Resources.*[ Type == 'AWS::Logs::LogGroup' ]
+
+rule rds_encrypted when %dbs !empty {
+    %dbs {
+        Properties.StorageEncrypted == true
+        <<
+            Violation: RDS instances must set StorageEncrypted: true.
+        >>
+    }
+}
+
+rule rds_not_publicly_accessible when %dbs !empty {
+    %dbs {
+        Properties {
+            PubliclyAccessible !exists or
+            PubliclyAccessible == false
+            <<
+                Violation: RDS instances must not be publicly accessible.
+            >>
+        }
+    }
+}
+
+rule rds_has_backups when %dbs !empty {
+    %dbs {
+        Properties.BackupRetentionPeriod >= 7
+        <<
+            Violation: RDS instances must keep at least 7 days of automated backups.
+        >>
+    }
+}
+
+rule ebs_volume_encrypted when %volumes !empty {
+    %volumes {
+        Properties.Encrypted == true
+        <<
+            Violation: EBS volumes must be encrypted.
+        >>
+    }
+}
+
+rule kms_key_rotates when %keys !empty {
+    %keys {
+        Properties.EnableKeyRotation == true
+        <<
+            Violation: KMS keys must have automatic rotation enabled.
+        >>
+    }
+}
+
+rule log_group_has_retention when %logs !empty {
+    %logs {
+        Properties.RetentionInDays exists
+        <<
+            Violation: log groups must set RetentionInDays; the default keeps logs (and their cost) forever.
+        >>
+    }
+}

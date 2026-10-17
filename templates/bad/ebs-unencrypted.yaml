@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NON-COMPLIANT on purpose: ebs-unencrypted'
+Resources:
+  V:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: us-east-1a
+      Size: 10
+      Encrypted: false
+      Tags:
+      - Key: Owner
+        Value: platform-team
+      - Key: Environment
+        Value: prod

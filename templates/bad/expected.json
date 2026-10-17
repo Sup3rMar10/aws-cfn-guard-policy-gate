@@ -1,0 +1,80 @@
+{
+  "s3-unencrypted": [
+    "s3_bucket_encrypted"
+  ],
+  "s3-no-public-block": [
+    "s3_bucket_blocks_public_access"
+  ],
+  "s3-partial-public-block": [
+    "s3_bucket_blocks_public_access"
+  ],
+  "s3-unversioned": [
+    "s3_bucket_versioned"
+  ],
+  "s3-versioning-suspended": [
+    "s3_bucket_versioned"
+  ],
+  "sg-open-ssh": [
+    "sg_inline_no_world_open_ssh"
+  ],
+  "sg-open-rdp": [
+    "sg_inline_no_world_open_rdp"
+  ],
+  "sg-open-port-range": [
+    "sg_inline_no_world_open_rdp",
+    "sg_inline_no_world_open_ssh"
+  ],
+  "sg-open-all-traffic": [
+    "sg_inline_no_world_open_rdp",
+    "sg_inline_no_world_open_ssh"
+  ],
+  "sg-open-ssh-ipv6": [
+    "sg_inline_no_world_open_ssh"
+  ],
+  "sg-ssh-hidden-in-range": [
+    "sg_inline_no_world_open_ssh"
+  ],
+  "sg-standalone-ssh": [
+    "sg_standalone_no_world_open_admin"
+  ],
+  "iam-star-lists": [
+    "iam_policy_no_allow_star_on_star"
+  ],
+  "iam-star-strings": [
+    "iam_policy_no_allow_star_on_star"
+  ],
+  "iam-role-inline-star": [
+    "iam_role_inline_policy_no_allow_star_on_star"
+  ],
+  "rds-unencrypted": [
+    "rds_encrypted"
+  ],
+  "rds-encryption-unset": [
+    "rds_encrypted"
+  ],
+  "rds-public": [
+    "rds_not_publicly_accessible"
+  ],
+  "rds-no-backups": [
+    "rds_has_backups"
+  ],
+  "ebs-unencrypted": [
+    "ebs_volume_encrypted"
+  ],
+  "kms-no-rotation": [
+    "kms_key_rotates"
+  ],
+  "log-no-retention": [
+    "log_group_has_retention"
+  ],
+  "bucket-untagged": [
+    "resources_have_environment_tag",
+    "resources_have_owner_tag"
+  ],
+  "bucket-missing-environment-tag": [
+    "resources_have_environment_tag"
+  ],
+  "two-buckets-one-bad": [
+    "s3_bucket_encrypted"
+  ]
+}

@@ -1,0 +1,43 @@
+#
+# S3: every bucket is encrypted, private, versioned and owned.
+#
+# Every rule here is written as `%buckets { ... }`, which checks EACH bucket on its own. The flatter form
+# `%buckets.Properties.X == ...` only looks at the buckets where X resolves, so a template with one compliant
+# bucket and one that lacks X passes. tests/ has a fixture (two-buckets-one-bad) that proves the difference.
+#
+let s3_buckets = Resources.*[ Type == 'AWS::S3::Bucket' ]
+
+rule s3_bucket_encrypted when %s3_buckets !empty {
+    %s3_buckets {
+        Properties.BucketEncryption.ServerSideEncryptionConfiguration[*]
+            .ServerSideEncryptionByDefault.SSEAlgorithm IN ['AES256', 'aws:kms', 'aws:kms:dsse']
+        <<
+            Violation: S3 buckets must enable default encryption (AES256 or aws:kms).
+            Fix: add BucketEncryption with a ServerSideEncryptionByDefault rule.
+        >>
+    }
+}
+
+rule s3_bucket_blocks_public_access when %s3_buckets !empty {
+    %s3_buckets {
+        Properties.PublicAccessBlockConfiguration {
+            BlockPublicAcls == true
+            BlockPublicPolicy == true
+            IgnorePublicAcls == true
+            RestrictPublicBuckets == true
+            <<
+                Violation: S3 buckets must block all four kinds of public access.
+                Fix: add PublicAccessBlockConfiguration with all four settings true.
+            >>
+        }
+    }
+}
+
+rule s3_bucket_versioned when %s3_buckets !empty {
+    %s3_buckets {
+        Properties.VersioningConfiguration.Status == 'Enabled'
+        <<
+            Violation: S3 buckets must have versioning enabled so an overwrite or delete can be undone.
+        >>
+    }
+}

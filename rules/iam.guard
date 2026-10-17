@@ -1,0 +1,31 @@
+#
+# IAM: no policy that allows every action on every resource. A Deny of '*' on '*' is fine (it is the opposite),
+# and so is '*' on a specific resource or a specific action on '*': only star-on-star is flagged.
+#
+let standalone = Resources.*[ Type in ['AWS::IAM::Policy', 'AWS::IAM::ManagedPolicy'] ]
+let roles      = Resources.*[ Type == 'AWS::IAM::Role' ]
+
+rule iam_policy_no_allow_star_on_star when %standalone !empty {
+    %standalone {
+        Properties.PolicyDocument.Statement[ Effect == 'Allow' ] {
+            Action[*] != '*' or Resource[*] != '*'
+            <<
+                Violation: a policy must not allow Action '*' on Resource '*' (full administrator).
+                Fix: list the specific actions and resources the workload needs.
+            >>
+        }
+    }
+}
+
+rule iam_role_inline_policy_no_allow_star_on_star when %roles !empty {
+    %roles {
+        when Properties.Policies exists {
+            Properties.Policies[*].PolicyDocument.Statement[ Effect == 'Allow' ] {
+                Action[*] != '*' or Resource[*] != '*'
+                <<
+                    Violation: a role's inline policy must not allow Action '*' on Resource '*'.
+                >>
+            }
+        }
+    }
+}
